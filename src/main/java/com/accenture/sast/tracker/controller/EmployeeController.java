@@ -4,6 +4,7 @@ import com.accenture.sast.tracker.model.Employee;
 import com.accenture.sast.tracker.service.EmployeeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -44,16 +45,8 @@ public class EmployeeController {
         return service.search(name);
     }
 
-    // ── VULNERABILITY V7: Insecure Direct Object Reference (CWE-639) ─────────
-    // Any caller can retrieve any employee's salary and national ID by supplying
-    // an employee ID. There is no check that the requester is authorised to view
-    // that specific employee's sensitive data. Incrementing the id exposes every
-    // record in the system.
-    // Fix: extract the caller's identity from a session or bearer token and verify
-    // that the requesting user either owns the record or holds an admin role before
-    // returning sensitive fields.
-    // ─────────────────────────────────────────────────────────────────────────
     @GetMapping("/{id}/profile")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getProfile(@PathVariable Long id) {
         Optional<Employee> opt = service.findById(id);
         if (opt.isEmpty()) {

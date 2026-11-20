@@ -31,16 +31,11 @@ public class EmployeeService {
         return repository.findById(id);
     }
 
-    // ── VULNERABILITY V1: SQL Injection (CWE-89) ──────────────────────────────
-    // The name parameter is concatenated directly into the SQL string.
-    // An attacker can supply: ' OR '1'='1  to return all rows, or craft a
-    // UNION-based payload to read arbitrary data.
-    // Fix: use a parameterised query — jdbc.query(sql, ps -> ps.setString(1, name), ...)
-    // ──────────────────────────────────────────────────────────────────────────
     public List<Employee> search(String name) {
         String sql = "SELECT id, name, role, email, onboarding_date " +
-                     "FROM employee WHERE LOWER(name) LIKE '%" + name.toLowerCase() + "%'";
-        return jdbc.query(sql, (rs, row) -> {
+                     "FROM employee WHERE LOWER(name) LIKE LOWER(?)";
+        String pattern = "%" + name.toLowerCase() + "%";
+        return jdbc.query(sql, ps -> ps.setString(1, pattern), (rs, row) -> {
             Employee e = new Employee();
             e.setName(rs.getString("name"));
             e.setRole(rs.getString("role"));

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -85,7 +86,7 @@ class EmployeeControllerTest {
         emp.setNationalId("NI-123456");
         Employee saved = repo.save(emp);
 
-        mvc.perform(get("/api/employees/" + saved.getId() + "/profile"))
+        mvc.perform(get("/api/employees/" + saved.getId() + "/profile").with(user("authorized")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Alice Smith"))
                 .andExpect(jsonPath("$.salary").value(95000))
@@ -94,7 +95,7 @@ class EmployeeControllerTest {
 
     @Test
     void getProfile_notFound_returns404() throws Exception {
-        mvc.perform(get("/api/employees/9999/profile"))
+        mvc.perform(get("/api/employees/9999/profile").with(user("authorized")))
                 .andExpect(status().isNotFound());
     }
 }
